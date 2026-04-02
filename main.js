@@ -1,115 +1,107 @@
-
-
-
-import * as THREE from 'three';
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
-
+import * as THREE from "three";
+import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
 
 // ***************Scene setup*****************
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({antialias: true});
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000,
+);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.shadowMap.enabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 camera.position.set(0, 2, 10); // Start slightly above the ground and back from the origin
 
-
 // ***************PointerLockControls setup*****************
 const controls = new PointerLockControls(camera, document.body);
 // scene.add(controls.getObject());
 
-
-document.addEventListener('click', () => {
-    controls.lock();
+document.addEventListener("click", () => {
+  controls.lock();
 });
 
 // camera movement - WASD keys
 const keys = {
-    w: false,
-    a: false,
-    s: false,
-    d: false
-}
+  w: false,
+  a: false,
+  s: false,
+  d: false,
+};
 const moveDirection = new THREE.Vector3();
 const moveSpeed = 0.1;
 
-
-document.addEventListener('keyup', (event) => {
-    if (event.key.toLowerCase() === 'w') keys.w = false;
-    if (event.key.toLowerCase() === 'a') keys.a = false;
-    if (event.key.toLowerCase() === 's') keys.s = false;
-    if (event.key.toLowerCase() === 'd') keys.d = false;
+document.addEventListener("keyup", (event) => {
+  if (event.key.toLowerCase() === "w") keys.w = false;
+  if (event.key.toLowerCase() === "a") keys.a = false;
+  if (event.key.toLowerCase() === "s") keys.s = false;
+  if (event.key.toLowerCase() === "d") keys.d = false;
 });
 
-document.addEventListener('keydown', (event) => {
-    if (event.key.toLowerCase() === 'w') keys.w = true;
-    if (event.key.toLowerCase() === 'a') keys.a = true;
-    if (event.key.toLowerCase() === 's') keys.s = true;
-    if (event.key.toLowerCase() === 'd') keys.d = true;
+document.addEventListener("keydown", (event) => {
+  if (event.key.toLowerCase() === "w") keys.w = true;
+  if (event.key.toLowerCase() === "a") keys.a = true;
+  if (event.key.toLowerCase() === "s") keys.s = true;
+  if (event.key.toLowerCase() === "d") keys.d = true;
 });
-
 
 const right = new THREE.Vector3();
 const movement = new THREE.Vector3();
 
 const cameraDirection = new THREE.Vector3();
-function movementHandler(){
-    moveDirection.set(0, 0, 0);
+function movementHandler() {
+  moveDirection.set(0, 0, 0);
 
-    if(keys.w) moveDirection.z -= moveSpeed;
-    if(keys.s) moveDirection.z += moveSpeed;
-    if(keys.a) moveDirection.x -= moveSpeed;
-    if(keys.d) moveDirection.x += moveSpeed;
+  if (keys.w) moveDirection.z -= moveSpeed;
+  if (keys.s) moveDirection.z += moveSpeed;
+  if (keys.a) moveDirection.x -= moveSpeed;
+  if (keys.d) moveDirection.x += moveSpeed;
 
-    camera.getWorldDirection(cameraDirection);
-    cameraDirection.y = 0;
-    cameraDirection.normalize();
+  camera.getWorldDirection(cameraDirection);
+  cameraDirection.y = 0;
+  cameraDirection.normalize();
 
-    
-    right.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
+  right.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
 
-    movement.set(0, 0, 0);
-    movement.addScaledVector(cameraDirection, moveDirection.z);
-    movement.addScaledVector(right, moveDirection.x);
+  movement.set(0, 0, 0);
+  movement.addScaledVector(cameraDirection, moveDirection.z);
+  movement.addScaledVector(right, moveDirection.x);
 
-    if (movement.lengthSq() > 0) movement.normalize();
-    movement.multiplyScalar(moveSpeed);
+  if (movement.lengthSq() > 0) movement.normalize();
+  movement.multiplyScalar(moveSpeed);
 
-    controls.getObject().position.add(movement);
-
+  controls.getObject().position.add(movement);
 }
-
 
 // *************** environment setup*****************
 // Sand terrain
 
 const terrainGeometry = new THREE.PlaneGeometry(200, 200);
-const sandCanvas = document.createElement('canvas');
+const sandCanvas = document.createElement("canvas");
 sandCanvas.width = 512;
 sandCanvas.height = 512;
-const sndCtx = sandCanvas.getContext('2d');
+const sndCtx = sandCanvas.getContext("2d");
 
 // for loop to create sand texture
-for(let i = 0; i < sandCanvas.width; i++){
-    for (let j = 0; j < sandCanvas.height; j++) {
-       const noise = Math.random() * 30 + 220; // Light yellowish color
-       sndCtx.fillStyle = `rgb(${noise}, ${noise - 20}, ${noise - 40})`;
-         sndCtx.fillRect(i, j, 1, 1);
-    }
+for (let i = 0; i < sandCanvas.width; i++) {
+  for (let j = 0; j < sandCanvas.height; j++) {
+    const noise = Math.random() * 30 + 220; // Light yellowish color
+    sndCtx.fillStyle = `rgb(${noise}, ${noise - 20}, ${noise - 40})`;
+    sndCtx.fillRect(i, j, 1, 1);
+  }
 }
-
-
 
 const sandTexture = new THREE.CanvasTexture(sandCanvas);
 sandTexture.magFilter = THREE.NearestFilter;
 sandTexture.minFilter = THREE.NearestFilter;
 
 const sandMaterial = new THREE.MeshStandardMaterial({
-    map: sandTexture,
-    roughness: 0.6,
-    metalness: 0.0
+  map: sandTexture,
+  roughness: 0.6,
+  metalness: 0.0,
 });
 
 const terrain = new THREE.Mesh(terrainGeometry, sandMaterial);
@@ -117,36 +109,35 @@ terrain.rotation.x = -Math.PI / 2;
 terrain.receiveShadow = true;
 scene.add(terrain);
 
-
 // **************Skybox setup*****************
-const skyCanvas = document.createElement('canvas');
+const skyCanvas = document.createElement("canvas");
 skyCanvas.width = 512;
 skyCanvas.height = 512;
-const skyCtx = skyCanvas.getContext('2d');
+const skyCtx = skyCanvas.getContext("2d");
 
 // create gradient atmosphere
 const gradient = skyCtx.createLinearGradient(0, 0, 0, skyCanvas.height);
-gradient.addColorStop(0, '#87CEEB'); // Light blue sky
-gradient.addColorStop(0.7, 'rgb(206, 49, 183)');// Pinkish hue near the horizon - For a sunset effect.
-gradient.addColorStop(1, '#D4A574'); // Light sandy color near the horizon
+gradient.addColorStop(0, "#87CEEB"); // Light blue sky
+gradient.addColorStop(0.7, "rgb(206, 49, 183)"); // Pinkish hue near the horizon - For a sunset effect.
+gradient.addColorStop(1, "#D4A574"); // Light sandy color near the horizon
 skyCtx.fillStyle = gradient;
 skyCtx.fillRect(0, 0, skyCanvas.width, skyCanvas.height);
 
 const skyTexture = new THREE.CanvasTexture(skyCanvas);
 
 const materialArray = [];
-for(let i = 0; i < 6; i++){
-    materialArray.push(new THREE.MeshBasicMaterial({
-        map: skyTexture,
-        side: THREE.BackSide
-    }))
-
-};
+for (let i = 0; i < 6; i++) {
+  materialArray.push(
+    new THREE.MeshBasicMaterial({
+      map: skyTexture,
+      side: THREE.BackSide,
+    }),
+  );
+}
 
 const skyGeometry = new THREE.BoxGeometry(500, 500, 500);
 const skybox = new THREE.Mesh(skyGeometry, materialArray);
 scene.add(skybox);
-
 
 // ***************Lighting setup*****************
 // point lighting
@@ -168,45 +159,75 @@ directionalLight.shadow.camera.top = 200;
 directionalLight.shadow.camera.bottom = -200;
 scene.add(directionalLight);
 
-// Amibiant lighting 
+// Amibiant lighting
 const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Soft ambient light
 scene.add(ambientLight);
 
 
+// *************Water body setup***************
+const waterGeometry = new THREE.PlaneGeometry(30, 50);
+const waterMaterial = new THREE.MeshPhongMaterial({
+  color: 0x1e90ff,
+  transparent: true,
+  opacity: 0.6,
+  emissive: 0x003366,
+  side: THREE.DoubleSide,
+  shininess: 100,
+});
+
+const water = new THREE.Mesh(waterGeometry, waterMaterial);
+water.rotation.x = -Math.PI / 2;
+water.position.set(-40, 0.1, -30);
+water.receiveShadow = true;
+scene.add(water);
+
+
+// ********floater tube *********
+const tubeGeometry = new THREE.TorusGeometry(1, 1.5, 12, 25);
+const tubeMaterial = new THREE.MeshPhongMaterial({
+  color: 0xff8c00,
+  shininess: 50,
+});
+
+const flTube = new THREE.Mesh(tubeGeometry, tubeMaterial);
+flTube.rotation.x = Math.PI / 2;
+flTube.position.set(-40, 0.5, -30);
+flTube.castShadow = true;
+flTube.receiveShadow = true;
+scene.add(flTube);
+
+window.flTube = flTube;
 
 // ***********Animation func.************
-function animate(){
-    requestAnimationFrame(animate);
+function animate() {
+  requestAnimationFrame(animate);
 
-    if (controls.isLocked) {
-        movementHandler();
-    }
+  if (controls.isLocked) {
+    movementHandler();
+  }
 
-    renderer.render(scene, camera);
+  renderer.render(scene, camera);
 }
 
 animate();
 
 // ***********CSS***********
-const instructions = document.getElementById('instructions');
-
+const instructions = document.getElementById("instructions");
 
 if (instructions) {
-    controls.addEventListener('lock', () => {
-        instructions.style.display = 'none';
-    });
-    
-    controls.addEventListener('unlock', () => {
-        instructions.style.display = 'block';
-    });
+  controls.addEventListener("lock", () => {
+    instructions.style.display = "none";
+  });
+
+  controls.addEventListener("unlock", () => {
+    instructions.style.display = "block";
+  });
 }
-
-
 
 // *********window resize*********
 
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
